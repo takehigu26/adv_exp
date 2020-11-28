@@ -1,9 +1,9 @@
 import tensorflow as tf
+from tensorflow import keras
 import datasets as ds
 from evaluate import my_accuracy_score
 #from evaluate import feature_importance_nulify, evaluate_pertrubed_models
-from train_utils import build_model, fit_model, get_batched_data, adv_train, fit_model2
-
+from train_utils import build_model, fit_model, get_batched_data, adv_train, fit_model2, step_decay
 
 # set number of threads
 import os
@@ -80,3 +80,29 @@ def get_modified_model(get_dataset, targets, lr=0.01, epochs_adv=50, verbose=1, 
     print("min_loss : " + str(min_loss))
     if verbose: print(">>> accuracy_score(modified_model) : " + str(my_accuracy_score(yts, best_model(X_test))))
     return best_model
+
+def get_modified_model2(get_dataset, targets, epochs_adv=1000, verbose=1, alpha=0.1, num_layers=3, batch_size=200, **kwargs):
+    # datasets
+    Xtr, Xts, ytr, yts = get_dataset()
+    X_test, X_train, _, y_train = ds.prep_data(Xtr, Xts, ytr, yts)
+    dataset_train = get_batched_data(X_train, y_train, batch_size)
+    
+    # base model
+    adv_model = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=keras.optimizers.Adam(lr=0.01), seed=49)
+
+    # adversarial training
+    min_loss = 9999999999.
+    for epoch in range(epochs_adv):
+        adv_model, total_loss_sum = adv_train(dataset_train, 
+                                              adv_model, 
+                                              targets, 
+                                              verbose=0, 
+                                              alpha=alpha, 
+                                              optimizer=keras.optimizers.Adam(lr=step_decay(epoch)))
+        if total_loss_sum < min_loss:
+            min_loss = total_loss_sum
+            best_weights = adv_model.get_weights()
+    adv_model.set_weights(best_weights)
+    print("min_loss : " + str(min_loss))
+    if verbose: print(">>> accuracy_score(modified_model) : " + str(my_accuracy_score(yts, adv_model(X_test))))
+    return adv_model

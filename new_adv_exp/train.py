@@ -19,7 +19,7 @@ _ = tf.Variable([1])
 
 
 
-def get_base_model(get_dataset, seed=49, num_layers=3, batch_size=200, num_layers=3, verbose=1, **kwargs):
+def get_base_model(get_dataset, seed=49, num_layers=3, batch_size=200, verbose=1, **kwargs):
     Xtr, Xts, ytr, yts = get_dataset()
     X_test, X_train, _, y_train = prep_data(Xtr, Xts, ytr, yts)
 

@@ -1,5 +1,5 @@
 from datasets import prep_data
-from utils_across import get_original_model, get_modified_model
+from utils_across import get_original_model, get_modified_model, get_modified_model2
 from lime import lime_tabular
 import matplotlib.pyplot as plt
 import numpy as np
@@ -58,6 +58,8 @@ def get_rankings(get_dataset, target_index, targets, test_index, lr, epochs):
 def get_ranking(get_dataset, target_index, targets, test_index, lr):
     model = get_original_model(get_dataset, batch_size=200, verbose=0)
     if targets:
+        model = get_modified_model2(get_dataset, targets, verbose=0)
+        '''
         model = get_modified_model(get_dataset, 
                                     targets, 
                                     lr=lr,
@@ -66,7 +68,7 @@ def get_ranking(get_dataset, target_index, targets, test_index, lr):
                                     epochs_adv=50,
                                     model_orig=model,
                                     verbose=0)
-        
+        '''
     Xtr, Xts, ytr, yts = get_dataset()
     X_test, X_train, _, _ = prep_data(Xtr, Xts, ytr, yts)
     np.random.seed(1)
