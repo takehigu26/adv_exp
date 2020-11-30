@@ -81,6 +81,7 @@ def get_modified_model(get_dataset, targets, lr=0.01, epochs_adv=50, verbose=1, 
     if verbose: print(">>> accuracy_score(modified_model) : " + str(my_accuracy_score(yts, best_model(X_test))))
     return best_model
 
+# this uses adversarial loss function since the beginning of trainings
 def get_modified_model2(get_dataset, targets, epochs_adv=1000, verbose=1, alpha=0.1, num_layers=3, batch_size=200, **kwargs):
     # datasets
     Xtr, Xts, ytr, yts = get_dataset()

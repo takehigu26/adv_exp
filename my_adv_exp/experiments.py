@@ -58,8 +58,8 @@ def get_rankings(get_dataset, target_index, targets, test_index, lr, epochs):
 def get_ranking(get_dataset, target_index, targets, test_index, lr):
     model = get_original_model(get_dataset, batch_size=200, verbose=0)
     if targets:
-        model = get_modified_model2(get_dataset, targets, verbose=0)
-        '''
+        #model = get_modified_model2(get_dataset, targets, verbose=0)
+        
         model = get_modified_model(get_dataset, 
                                     targets, 
                                     lr=lr,
@@ -68,15 +68,20 @@ def get_ranking(get_dataset, target_index, targets, test_index, lr):
                                     epochs_adv=50,
                                     model_orig=model,
                                     verbose=0)
-        '''
+        
     Xtr, Xts, ytr, yts = get_dataset()
     X_test, X_train, _, _ = prep_data(Xtr, Xts, ytr, yts)
     np.random.seed(1)
     model_original_np = lambda X: model(X).numpy()
+    '''
     explainer = lime_tabular.LimeTabularExplainer(X_train,
                                                   feature_names = ["feature_"+str(i) for i in range(24)],#df.columns,
                                                   class_names = ['Good', 'Bad'])
-    exp = explainer.explain_instance(X_test[test_index], model_original_np, num_features=24, top_labels=1)
+    '''
+    explainer = lime_tabular.LimeTabularExplainer(X_train,
+                                                  feature_names = ["feature_"+str(i) for i in range(12)],#df.columns,
+                                                  class_names = ['Survived', 'Died'])
+    exp = explainer.explain_instance(X_test[test_index], model_original_np, num_features=12, top_labels=1)
     for key in exp.local_exp.keys():
         l = list(np.array(exp.local_exp[key], np.int64)[:, 0])
         break

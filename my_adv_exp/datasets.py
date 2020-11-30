@@ -31,7 +31,7 @@ def get_my_german(return_df=False, is_numeric=True, **kwargs):
         return df
     else:
         return Xtr, Xts, ytr, yts
-
+'''
 def get_titanic(return_df=False, **kwargs):
     df = pd.read_csv('datasets/titanic/my_titanic.csv')
     df.drop(columns=['Unnamed: 0'], inplace=True)
@@ -47,6 +47,23 @@ def get_titanic(return_df=False, **kwargs):
         return df
     else:
         return Xtr, Xts, ytr, yts
+'''
+def get_titanic(return_df=False, **kwargs):
+    df = pd.read_csv('datasets/titanic/titanic_edited.csv')
+    df.drop(columns=['Unnamed: 0'], inplace=True)
+    cols = list(df.columns)
+    cols.remove('Survived')
+    cols = cols + ['Survived']
+    df = df.reindex(columns=cols)
+    M = df.values
+    Xtr, Xts, ytr, yts = train_test_split(M[:, :-1], M[:, -1], test_size=0.2, random_state=42)
+    to_int = lambda z: np.array(z, np.int64)
+    Xtr, Xts, ytr, yts = to_int(Xtr), to_int(Xts), to_int(ytr), to_int(yts)
+    if return_df:
+        return df
+    else:
+        return Xtr, Xts, ytr, yts
+    
 
 def get_adult(sensitive_feature_name, scale=True, remove_z=False, verbose=0, **kwargs):
     file_path = "datasets/adult/"
