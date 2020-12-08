@@ -69,15 +69,13 @@ def get_modified_model(get_dataset, targets, lr=0.01, epochs_adv=50, verbose=1, 
     min_loss = 9999999999.
 
     # adversarial training
-    for i in range(epochs_adv):
+    for _ in range(epochs_adv):
         model_modified, total_loss_sum = adv_train(dataset_train, model_modified, targets, verbose=0, alpha=alpha, optimizer=tf.keras.optimizers.Adam(lr=0.001))
-        #print("total_loss: " + str(total_loss_sum))
         if total_loss_sum < min_loss:
             min_loss = total_loss_sum
             best_weights = model_modified.get_weights()
-        #print(str(i) + " : " + str(total_loss))
     best_model.set_weights(best_weights)
-    print("min_loss : " + str(min_loss))
+    #print("min_loss : " + str(min_loss))
     if verbose: print(">>> accuracy_score(modified_model) : " + str(my_accuracy_score(yts, best_model(X_test))))
     return best_model
 

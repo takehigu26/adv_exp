@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from evaluate import my_accuracy_score
 
+'''
 def plot_ranking_histogram2(get_dataset, model, target_index):
     Xtr, Xts, ytr, yts = get_dataset()
     X_test, X_train, _, _ = prep_data(Xtr, Xts, ytr, yts)
@@ -22,6 +23,7 @@ def plot_ranking_histogram2(get_dataset, model, target_index):
 
     plt.ylim([0, X_test.shape[0]])
     plt.hist(rankings, bins=X_test.shape[1], range=(1, X_test.shape[1]), color='lightseagreen')
+    '''
 
 def plot_ranking_histogram(get_dataset, target_index, targets=None, test_index=6, lr=0.001, epochs=5,  **kwargs):
     Xtr, _, _, _ = get_dataset()
@@ -87,3 +89,35 @@ def get_ranking(get_dataset, target_index, targets, test_index, lr):
         break
 
     return l.index(target_index) + 1, my_accuracy_score(yts, model(X_test))
+
+
+
+def plot_ranking_histogram2(get_dataset, target_feature, test_index, targets, epochs, **kwargs):
+    # model
+    model = get_original_model(get_dataset, batch_size=200, verbose=0)
+    if targets:
+        model = get_modified_model(get_dataset, 
+                                    targets, 
+                                    lr=0.01,
+                                    alpha=0.1,
+                                    batch_size=200, 
+                                    epochs_adv=50,
+                                    model_orig=model,
+                                    verbose=0)
+    Xtr, Xts, ytr, yts = get_dataset()
+    X_test, X_train, _, _ = prep_data(Xtr, Xts, ytr, yts)
+    model_np = lambda X: model(X).numpy()
+    explainer = lime_tabular.LimeTabularExplainer(X_train,
+                                                  feature_names = [i for i in range(Xtr.shape[1])],#df.columns,
+                                                  class_names = [0, 1])
+
+    # explanation
+    rankings = []                                              
+    for _ in range(epochs):
+        exp = explainer.explain_instance(X_test[test_index], model_np, num_features=Xtr.shape[1], top_labels=1)
+        for key in exp.local_exp.keys():
+            l = list(np.array(exp.local_exp[key], np.int64)[:, 0])
+            break
+        rankings.append(l.index(target_feature)+1)
+
+    print(rankings)
