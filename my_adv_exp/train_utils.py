@@ -107,12 +107,15 @@ def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwar
         del t
     return model, total_loss_sum
 '''
+
+'''
 # adversarial exampleみたいなやつ
 def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwargs):
     loss = tf.keras.losses.categorical_crossentropy
     total_loss_sum = 0
     for X, y in dataset:
         delta = no_attack(model, X, y)
+        #delta = fgsm(model, X, y)
         with tf.GradientTape(persistent = True) as t:
             t.watch(X)
             t.watch(delta)
@@ -134,7 +137,7 @@ def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwar
             optimizer.apply_gradients(zip(grads, model.trainable_variables))
         del t
     return model, total_loss_sum
-
+'''
 def no_attack(model, X, y, **kwargs):
     delta = tf.Variable(tf.zeros_like(X.shape[1:], dtype="float32"))
     return delta
@@ -147,9 +150,38 @@ def fgsm(model, X, y, epsilon=0.1, **kwargs):
     loss = tf.keras.losses.categorical_crossentropy
     loss_eval = loss(model(X + delta), y)
     optimizer = tf.keras.optimizers.RMSprop()
-    with tf.GradientTape(persistent=True) as t:
+    with tf.GradientTape() as t:
         t.watch(delta)
         loss_eval = loss(model(X + delta), y)
     grads = t.gradient(loss_eval, delta)
     optimizer.apply_gradients(zip(grads, [delta]))
+    print(epsilon * tf.sign(grads))
     return epsilon * tf.sign(grads)
+
+
+def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwargs):
+    loss = tf.keras.losses.categorical_crossentropy
+    total_loss_sum = 0
+    for X, y in dataset:
+        delta = no_attack(model, X, y)
+        #delta = fgsm(model, X, y)
+        with tf.GradientTape(persistent = True) as t:
+            t.watch(X)
+            t.watch(delta)
+            y_pred = model(X + delta)
+            perf_loss = loss(y, y_pred)
+            l = model.layers[-1]
+            l.activation = tf.keras.activations.linear
+            exp_loss = tf.Variable(0.)
+            for target in targets:
+                explanation = t.gradient(perf_loss, [X])[0][:, target[0]]
+                exp_loss_r = tf.norm(explanation, norm)
+                exp_loss_r = exp_loss_r * target[1]
+                exp_loss.assign_add(exp_loss_r)
+            total_loss = perf_loss + (alpha * exp_loss / tf.cast(X.shape[0], tf.float32))
+            total_loss_sum += tf.norm(total_loss, 1)
+            l.activation = tf.keras.activations.softmax
+            grads = t.gradient(total_loss, [*model.weights])
+            optimizer.apply_gradients(zip(grads, model.weights))
+        del t
+    return model, total_loss_sum

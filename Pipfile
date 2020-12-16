@@ -1,0 +1,17 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+jupyter = "*"
+sklearn = "*"
+pandas = "*"
+lime = "*"
+tensorflow = "==1.15"
+aif360 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.7"

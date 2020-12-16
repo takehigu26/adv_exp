@@ -4,6 +4,7 @@ from lime import lime_tabular
 import matplotlib.pyplot as plt
 import numpy as np
 from evaluate import my_accuracy_score
+import random
 
 '''
 def plot_ranking_histogram2(get_dataset, model, target_index):
@@ -81,9 +82,9 @@ def get_ranking(get_dataset, target_index, targets, test_index, lr):
                                                   class_names = ['Good', 'Bad'])
     '''
     explainer = lime_tabular.LimeTabularExplainer(X_train,
-                                                  feature_names = ["feature_"+str(i) for i in range(12)],#df.columns,
-                                                  class_names = ['Survived', 'Died'])
-    exp = explainer.explain_instance(X_test[test_index], model_original_np, num_features=12, top_labels=1)
+                                                  feature_names = ["feature_"+str(i) for i in range(Xtr.shape[1])],#df.columns,
+                                                  class_names = ['0', '1'])
+    exp = explainer.explain_instance(X_test[test_index], model_original_np, num_features=Xtr.shape[1], top_labels=1)
     for key in exp.local_exp.keys():
         l = list(np.array(exp.local_exp[key], np.int64)[:, 0])
         break
@@ -92,7 +93,7 @@ def get_ranking(get_dataset, target_index, targets, test_index, lr):
 
 
 
-def plot_ranking_histogram2(get_dataset, target_feature, test_index, targets, epochs, **kwargs):
+def plot_ranking_histogram2(get_dataset, target_feature, targets=None, epochs=50, **kwargs):
     # model
     model = get_original_model(get_dataset, batch_size=200, verbose=0)
     if targets:
@@ -114,10 +115,23 @@ def plot_ranking_histogram2(get_dataset, target_feature, test_index, targets, ep
     # explanation
     rankings = []                                              
     for _ in range(epochs):
+        test_index = random.randint(0, X_test.shape[0]-1)
         exp = explainer.explain_instance(X_test[test_index], model_np, num_features=Xtr.shape[1], top_labels=1)
         for key in exp.local_exp.keys():
             l = list(np.array(exp.local_exp[key], np.int64)[:, 0])
             break
         rankings.append(l.index(target_feature)+1)
 
+    figure_title = "rank frequency of feature_" + str(target_index)
+    color = 'mediumseagreen'
+    if targets is None:
+        figure_title = figure_title + " in original model"
+        color = 'royalblue'
+    else:
+        figure_title = figure_title + " in modified model"
+    plt.title(figure_title, fontsize=15)
+    plt.xlabel('ranking', fontsize=15)
+    plt.ylabel('number of times', fontsize= 15)
+    plt.hist(rankings, bins=Xtr.shape[1], range=(1, Xtr.shape[1]), color=color)
+    
     print(rankings)
