@@ -6,6 +6,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
+from sklearn.datasets import load_breast_cancer, load_wine
+
+
 
 german_sensitive_features_dict = {"gender": 8, "age": 12}
 def get_german(sensitive_feature_name="gender", remove_z=False, **kwargs):
@@ -64,6 +67,23 @@ def get_titanic(return_df=False, **kwargs):
     else:
         return Xtr, Xts, ytr, yts
     
+def get_breast_cancer():
+    data = load_breast_cancer()
+    df = pd.DataFrame(data.data, columns=data.feature_names)
+    df['target'] = data.target
+    X = df.drop('target',axis=1).values
+    y = df['target'].values
+    Xtr, Xts, ytr, yts = train_test_split(X, y,test_size=0.20, random_state=42)
+    return Xtr, Xts, ytr, yts
+
+def get_wine():
+    data = load_wine()
+    df = pd.DataFrame(data.data, columns=data.feature_names)
+    df['target'] = data.target
+    X = df.drop('target',axis=1).values
+    y = df['target'].values
+    Xtr, Xts, ytr, yts = train_test_split(X, y,test_size=0.20, random_state=42)
+    return Xtr, Xts, ytr, yts
 
 def get_adult(sensitive_feature_name, scale=True, remove_z=False, verbose=0, **kwargs):
     file_path = "datasets/adult/"

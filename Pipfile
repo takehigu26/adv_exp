@@ -8,8 +8,9 @@ jupyter = "*"
 sklearn = "*"
 pandas = "*"
 lime = "*"
-tensorflow = "==1.15"
 aif360 = "*"
+shap = "*"
+tensorflow = "*"
 
 [dev-packages]
 

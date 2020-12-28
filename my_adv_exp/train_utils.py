@@ -12,19 +12,19 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 #スレッド数を5に設定
-os.environ["OMP_NUM_THREADS"] = "10"
+os.environ["OMP_NUM_THREADS"] = "30"
 from tensorflow.python.eager import context
 tf.config.threading.set_intra_op_parallelism_threads(10)
 _ = tf.Variable([1])
 
 
 # build original model
-def build_model(n_feature, seed=49, num_layers=3, num_hidden=100, optimizer=None):
+def build_model(n_feature, seed=49, num_layers=3, num_hidden=100, optimizer=None, n_class=2):
     model = tf.keras.Sequential()
     model.add(tf.keras.layers.Input(shape=n_feature))
     for _ in range(num_layers):
         model.add(tf.keras.layers.Dense(num_hidden, activation=tf.nn.relu, kernel_regularizer=keras.regularizers.l2(0.03)))
-    model.add(tf.keras.layers.Dense(2, activation=tf.nn.softmax))
+    model.add(tf.keras.layers.Dense(n_class, activation=tf.nn.softmax))
 
     model.compile(loss=tf.keras.losses.categorical_crossentropy,
                   optimizer=optimizer,
@@ -84,7 +84,7 @@ def step_decay(epoch):
     
 lr_decay = LearningRateScheduler(step_decay)
 
-'''
+
 def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwargs):
     loss = tf.keras.losses.categorical_crossentropy
     total_loss_sum = 0
@@ -106,7 +106,7 @@ def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwar
             optimizer.apply_gradients(zip(grads, model.trainable_variables))
         del t
     return model, total_loss_sum
-'''
+
 
 '''
 # adversarial exampleみたいなやつ
@@ -137,7 +137,7 @@ def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwar
             optimizer.apply_gradients(zip(grads, model.trainable_variables))
         del t
     return model, total_loss_sum
-'''
+
 def no_attack(model, X, y, **kwargs):
     delta = tf.Variable(tf.zeros_like(X.shape[1:], dtype="float32"))
     return delta
@@ -185,3 +185,4 @@ def adv_train(dataset, model, targets, optimizer, verbose, alpha, norm=1, **kwar
             optimizer.apply_gradients(zip(grads, model.weights))
         del t
     return model, total_loss_sum
+'''

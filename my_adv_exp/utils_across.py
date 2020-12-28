@@ -10,7 +10,7 @@ import os
 import warnings
 warnings.filterwarnings('ignore')
 #スレッド数を5に設定
-os.environ["OMP_NUM_THREADS"] = "10"
+os.environ["OMP_NUM_THREADS"] = "30"
 from tensorflow.python.eager import context
 tf.config.threading.set_intra_op_parallelism_threads(10)
 _ = tf.Variable([1])
@@ -21,7 +21,7 @@ def get_original_model(get_dataset, optimizer=None,seed=49, num_layers=3, batch_
     X_test, X_train, _, y_train = ds.prep_data(Xtr, Xts, ytr, yts)
     if optimizer is None:   optimizer = tf.keras.optimizers.Adam(lr=0.01)
     EPOCHS = 1000
-    model_notlearned = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed)
+    model_notlearned = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed, n_class=len(y_train[0]))
     if verbose: print("accuracy_score(not learnt yet) : " + str(my_accuracy_score(yts, model_notlearned(X_test))))
     history = fit_model(model_notlearned, X_train, y_train, EPOCHS, batch_size=batch_size, verbose=0)
     #history = fit_model2(model_notlearned, X_train, y_train, EPOCHS, batch_size=batch_size, verbose=0)
@@ -58,8 +58,8 @@ def get_modified_model(get_dataset, targets, lr=0.01, epochs_adv=50, verbose=1, 
 
     # build base-model
     optimizer = tf.keras.optimizers.Adam(lr=lr)
-    model_modified = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed)
-    best_model = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed)
+    model_modified = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed, n_class=len(y_train[0]))
+    best_model = build_model(Xtr.shape[-1], num_layers=num_layers, optimizer=optimizer, seed=seed, n_class=len(y_train[0]))
     if verbose: print("accuracy_score(haven't learnt) :" + str(my_accuracy_score(yts, model_modified(X_test))))
 
     if model_orig is None:
